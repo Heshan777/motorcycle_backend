@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const motorcycleRoutes = require('./routes/motorcycleRoutes');
@@ -15,6 +16,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({ success: true, message: 'API is healthy' });

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Urban bike visual">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a0f2e"/>
+      <stop offset="1" stop-color="#4c1d95"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg3)"/>
+  <rect y="640" width="1600" height="260" fill="#111827"/>
+  <g opacity="0.35" fill="#93c5fd">
+    <rect x="130" y="230" width="110" height="410"/>
+    <rect x="280" y="180" width="145" height="460"/>
+    <rect x="470" y="130" width="120" height="510"/>
+    <rect x="640" y="250" width="155" height="390"/>
+    <rect x="850" y="200" width="138" height="440"/>
+    <rect x="1030" y="150" width="165" height="490"/>
+    <rect x="1240" y="220" width="128" height="420"/>
+  </g>
+  <g transform="translate(770 530)">
+    <circle cx="-170" cy="115" r="94" fill="#0f172a"/>
+    <circle cx="170" cy="115" r="94" fill="#0f172a"/>
+    <rect x="-230" y="-15" width="465" height="90" rx="35" fill="#a78bfa"/>
+    <rect x="-70" y="-100" width="205" height="74" rx="28" fill="#ddd6fe"/>
+    <rect x="230" y="5" width="110" height="24" rx="10" fill="#f43f5e"/>
+  </g>
+  <text x="100" y="145" fill="#f5f3ff" font-family="Inter,Arial" font-size="66" font-weight="800">Velocity NEO-R</text>
+  <text x="102" y="202" fill="#ddd6fe" font-family="Inter,Arial" font-size="30" font-weight="500">URBAN PERFORMANCE LINE</text>
+</svg>

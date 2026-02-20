@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Velocity Motors | Landing</title>
+    <meta
+      name="description"
+      content="Premium motorcycle landing page with timed hero image slider and modern navigation."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">V</div>
+        <span>Velocity Motors</span>
+      </div>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#home">Home</a>
+        <a href="#bikes">Motorcycles</a>
+        <a href="#services">After Sales</a>
+        <a href="#events">Events</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="nav-cta">Book Test Ride</button>
+    </header>
+
+    <main>
+      <section class="hero" id="home" aria-label="Motorcycle highlights">
+        <div class="slider" data-interval="4200">
+          <button class="nav prev" aria-label="Previous slide">&#10094;</button>
+          <div class="slides">
+            <article class="slide is-active">
+              <img src="./assets/slide-1.svg" alt="Sport touring motorcycle on elevated bridge road" />
+              <div class="overlay">
+                <h1>Precision Meets Power</h1>
+                <p>Engineered for riders who want responsive handling and confident long-distance comfort.</p>
+              </div>
+            </article>
+            <article class="slide">
+              <img src="./assets/slide-2.svg" alt="Adventure bike on countryside route" />
+              <div class="overlay">
+                <h1>Adventure Without Limits</h1>
+                <p>Built to own city streets on weekdays and open roads on weekends.</p>
+              </div>
+            </article>
+            <article class="slide">
+              <img src="./assets/slide-3.svg" alt="Modern motorcycle parked near city skyline" />
+              <div class="overlay">
+                <h1>Urban Style, Premium Tech</h1>
+                <p>Seamless connectivity, dynamic performance, and design that turns heads.</p>
+              </div>
+            </article>
+          </div>
+          <button class="nav next" aria-label="Next slide">&#10095;</button>
+          <div class="dots" role="tablist" aria-label="Slide indicators"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
