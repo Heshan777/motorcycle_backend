@@ -2,7 +2,9 @@ const express = require('express');
 const {
   registerUser,
   loginUser,
+  startGoogleAuth,
   googleLogin,
+  googleOAuthCallback,
   getMe,
   updateProfile,
   changePassword,
@@ -16,7 +18,9 @@ const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.get('/google', startGoogleAuth);
 router.post('/google', googleLogin);
+router.get('/google/callback', googleOAuthCallback);
 
 router.get('/me', protect, getMe);
 router.put('/me', protect, updateProfile);

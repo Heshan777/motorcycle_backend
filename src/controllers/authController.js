@@ -26,6 +26,7 @@
 
 
 
+const axios = require('axios');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
@@ -41,6 +42,46 @@ const buildAuthResponse = (user) => ({
   role: user.role,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
+});
+
+const syncGoogleUser = async ({ sub: googleId, email, name }) => {
+  let user = await User.findOne({ email });
+
+  if (user) {
+    if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+  } else {
+    user = await User.create({ name, email, googleId });
+  }
+
+  return user;
+};
+
+const getGoogleRedirectUri = (req) =>
+  process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/v1/auth/google/callback`;
+
+const startGoogleAuth = asyncHandler(async (req, res) => {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    res.status(500);
+    throw new Error('Google OAuth is not configured: GOOGLE_CLIENT_ID is missing');
+  }
+
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    redirect_uri: getGoogleRedirectUri(req),
+    response_type: 'code',
+    scope: 'openid email profile',
+    access_type: 'offline',
+    prompt: 'select_account',
+  });
+
+  if (req.query.state) {
+    params.set('state', String(req.query.state));
+  }
+
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
 });
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -180,30 +221,89 @@ const googleLogin = asyncHandler(async (req, res) => {
     throw new Error('Invalid Google token');
   }
 
-  const { sub: googleId, email, name } = payload;
-
-  // Find an existing user by email or create a new one
-  let user = await User.findOne({ email });
-
-  if (user) {
-    // Link googleId if this user hasn't signed in with Google before
-    if (!user.googleId) {
-      user.googleId = googleId;
-      await user.save();
-    }
-  } else {
-    // New user — no password needed
-    user = await User.create({ name, email, googleId });
-  }
+  const user = await syncGoogleUser(payload);
 
   const token = generateToken(user._id);
   res.status(200).json({ success: true, token, user: buildAuthResponse(user) });
 });
 
+const googleOAuthCallback = asyncHandler(async (req, res) => {
+  const { code, state } = req.query;
+
+  if (!code) {
+    res.status(400);
+    throw new Error('Google authorization code is required');
+  }
+
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    res.status(500);
+    throw new Error(
+      'Google OAuth is not configured: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required'
+    );
+  }
+
+  try {
+    const tokenBody = new URLSearchParams({
+      code: String(code),
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: getGoogleRedirectUri(req),
+      grant_type: 'authorization_code',
+    });
+
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', tokenBody.toString(), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+
+    if (!data.id_token) {
+      res.status(401);
+      throw new Error('Google did not return an ID token');
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: data.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    const user = await syncGoogleUser(payload);
+    const token = generateToken(user._id);
+
+    if (process.env.GOOGLE_AUTH_SUCCESS_REDIRECT) {
+      const redirectUrl = new URL(process.env.GOOGLE_AUTH_SUCCESS_REDIRECT);
+      redirectUrl.searchParams.set('token', token);
+      if (state) {
+        redirectUrl.searchParams.set('state', String(state));
+      }
+
+      return res.redirect(redirectUrl.toString());
+    }
+
+    res.status(200).json({ success: true, token, user: buildAuthResponse(user) });
+  } catch (error) {
+    if (process.env.GOOGLE_AUTH_ERROR_REDIRECT) {
+      const errorRedirect = new URL(process.env.GOOGLE_AUTH_ERROR_REDIRECT);
+      errorRedirect.searchParams.set('error', 'google_auth_failed');
+      if (state) {
+        errorRedirect.searchParams.set('state', String(state));
+      }
+
+      return res.redirect(errorRedirect.toString());
+    }
+
+    res.status(401);
+    throw new Error('Google OAuth failed');
+  }
+});
+
 module.exports = {
   registerUser,
   loginUser,
+  startGoogleAuth,
   googleLogin,
+  googleOAuthCallback,
   getMe,
   updateProfile,
   changePassword,

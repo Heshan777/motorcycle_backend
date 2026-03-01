@@ -57,6 +57,9 @@ npm start
 
 - `POST /auth/register`
 - `POST /auth/login`
+- `GET /auth/google` (start OAuth redirect flow)
+- `GET /auth/google/callback` (OAuth callback)
+- `POST /auth/google` (Google credential token login)
 - `GET /auth/me` (protected)
 - `PUT /auth/me` (protected)
 - `PUT /auth/change-password` (protected)
