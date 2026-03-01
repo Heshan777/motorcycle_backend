@@ -17,9 +17,13 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       minlength: 6,
       select: false,
+    },
+    googleId: {
+      type: String,
+      default: null,
     },
     phone: {
       type: String,
@@ -38,7 +42,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre('save', async function preSave() {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password) {
     return;
   }
 

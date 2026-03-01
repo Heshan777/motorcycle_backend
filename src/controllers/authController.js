@@ -26,9 +26,12 @@
 
 
 
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const generateToken = require('../utils/generateToken');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const buildAuthResponse = (user) => ({
   _id: user._id,
@@ -156,9 +159,51 @@ const deleteUser = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'User deleted successfully' });
 });
 
+const googleLogin = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential) {
+    res.status(400);
+    throw new Error('Google credential is required');
+  }
+
+  // Verify the Google ID token server-side
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch {
+    res.status(401);
+    throw new Error('Invalid Google token');
+  }
+
+  const { sub: googleId, email, name } = payload;
+
+  // Find an existing user by email or create a new one
+  let user = await User.findOne({ email });
+
+  if (user) {
+    // Link googleId if this user hasn't signed in with Google before
+    if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+  } else {
+    // New user — no password needed
+    user = await User.create({ name, email, googleId });
+  }
+
+  const token = generateToken(user._id);
+  res.status(200).json({ success: true, token, user: buildAuthResponse(user) });
+});
+
 module.exports = {
   registerUser,
   loginUser,
+  googleLogin,
   getMe,
   updateProfile,
   changePassword,
